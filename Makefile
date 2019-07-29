@@ -5,11 +5,12 @@ OBJDUMP := $(ARCH_PREF)objdump
 OBJCOPY := $(ARCH_PREF)objcopy
 MARCH := rv64i
 ABI := lp64
-CFLAGS := -DWITH_CSR -DWITH_INTERRUPT -DWITH_IRQ -DWITH_ECALL
-# START_ADR := 0xC0020000
-# VA_BASE := 0xC0000000
-START_ADR := 0x20000
-VA_BASE := 0x0
+CFLAGS := -DWITH_CSR -DWITH_INTERRUPT -DWITH_IRQ -DWITH_ECALL -mcmodel=medany
+# CFLAGS :=
+START_ADR := 0xC0020000
+VA_BASE := 0xC0020000
+# START_ADR := 0x80010000
+# VA_BASE := 0x80000000	# 虚地址偏移
 
 all: disas.S monitor.bin
 
@@ -21,7 +22,8 @@ monitor.bin: out.o
 	./align.sh monitor.bin
 
 out.o: entry.o monitor.o
-	$(LD) -nostdlib -N -e _start -Ttext $(START_ADR) entry.o monitor.o -o out.o -m elf64lriscv
+	# $(LD) -nostdlib -N -e _start -Ttext $(START_ADR) entry.o monitor.o -o out.o -m elf64lriscv
+	$(LD) -nostdlib -N -Tlinker.ld entry.o monitor.o -o out.o -m elf64lriscv
 
 entry.o: entry.S
 	$(GCC) -c -march=$(MARCH) -mabi=$(ABI) $(CFLAGS) -DVA_BASE=$(VA_BASE) -fno-builtin -o entry.o entry.S

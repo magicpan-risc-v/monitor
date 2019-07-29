@@ -14,10 +14,14 @@
 
 
 
-#define GETCHAR_BLK(c) {while(!((*((unsigned*)ADR_SERIAL_BUF)) & 0xf0)); \
+#define GETCHAR_BLK(c) { \
     (c) = *((char*)ADR_SERIAL_DAT); }
-#define PUTCHAR(c) {while(!((*((unsigned*)ADR_SERIAL_BUF)) & 0xf)); \
+// #define GETCHAR_BLK(c) {while(!((*((unsigned*)ADR_SERIAL_BUF)) & 0xf0)); \
+//     (c) = *((char*)ADR_SERIAL_DAT); }
+#define PUTCHAR(c) { \
     (*((char*)ADR_SERIAL_DAT) = (c));}
+// #define PUTCHAR(c) {while(!((*((unsigned*)ADR_SERIAL_BUF)) & 0xf)); \
+//     (*((char*)ADR_SERIAL_DAT) = (c));}
 
 #if defined(WITH_CSR) && defined(WITH_IRQ) && defined(WITH_INTERRUPT)
 char input_buffer[BUFSIZE];
@@ -115,16 +119,16 @@ void print_help(){
 }
 
 #if defined(WITH_CSR) && defined(WITH_INTERRUPT)
-void trap(){
+void trap(){    // 中断和异常处理例程
 #ifdef WITH_IRQ
     unsigned irq_source;
 #endif
-    unsigned cause = read_csr(mcause);
+    unsigned cause = read_csr(mcause);  // 获取原因
     bool ret = false;
-    if((int)cause < 0){
+    if((int)cause < 0){ // 代表中断
         // asynchronous interrupt
         switch((cause << 1) >> 1){
-            case INT_MTIMER:
+            case INT_MTIMER:    // M态时钟中断
                 *((unsigned*)ADR_TMEH) = 0;
                 *((unsigned*)ADR_TMEL) = 0;
                 if(in_user){
@@ -161,7 +165,7 @@ void trap(){
                 ret = true;
         }
         clear_csr(mip, 1 << ((cause << 1) >> 1));
-    } else{
+    } else{ // 发生了异常
         switch(cause){
             case EXC_INST_MISALIGN:
                 print("Exception: instruction misaligned @ ");
@@ -237,7 +241,7 @@ void init(){
     write_csr(mscratch, ADR_KSTACK_TOP);
 
     // set up trap vector
-    write_csr(mtvec, _trap_entry);
+    write_csr(mtvec, _trap_entry);  // 设置中断服务处理例程地址
     set_csr(mstatus, 8);
     // timecmp = 125000 = clockfreq / 100
     // timer precision: 10ms
@@ -277,7 +281,7 @@ void jump_exe(){
 
 
 #if defined(WITH_CSR) && defined(WITH_INTERRUPT)
-    if(time_lim <= time_count){
+    if(time_lim <= time_count){ // 超时而杀死用户程序
         print("User process killed prematurely for running out of time.\n");
     }
     
@@ -543,6 +547,7 @@ void disas_exe(){
     }
 }
 
+// 程序入口，从_start跳转到这里
 void start(){
     print("Welcome to System on Cat!\n");
     print("Monitor v0.1\n");
