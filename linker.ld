@@ -9,6 +9,5 @@ SECTIONS
   PROVIDE( __global_pointer$ = . + (4K / 2) );
   .data : { *(.data) }
   .bss : { *(.bss) }
-  _end = .;
 }
 

@@ -23,16 +23,16 @@
 // #define PUTCHAR(c) {while(!((*((unsigned*)ADR_SERIAL_BUF)) & 0xf)); \
 //     (*((char*)ADR_SERIAL_DAT) = (c));}
 
-#if defined(WITH_CSR) && defined(WITH_IRQ) && defined(WITH_INTERRUPT)
-char input_buffer[BUFSIZE];
-int bufh, buft;
+// #if defined(WITH_CSR) && defined(WITH_IRQ) && defined(WITH_INTERRUPT)
+// char input_buffer[BUFSIZE];
+// int bufh, buft;
 
-#define GETCHAR(c) {while(bufh == buft); \
-    (c) = input_buffer[bufh ++]; \
-    if(bufh == BUFSIZE) bufh = 0;}
-#else
+// #define GETCHAR(c) {while(bufh == buft); \
+//     (c) = input_buffer[bufh ++]; \
+//     if(bufh == BUFSIZE) bufh = 0;}
+// #else
 #define GETCHAR(c) {GETCHAR_BLK((c))}
-#endif
+// #endif
 
 extern void _trap_entry(void);
 extern void _entry(unsigned adr);
@@ -124,35 +124,38 @@ void trap(){    // 中断和异常处理例程
     unsigned irq_source;
 #endif
     unsigned cause = read_csr(mcause);  // 获取原因
+    unsigned long long time_count = 0;
     bool ret = false;
     if((int)cause < 0){ // 代表中断
         // asynchronous interrupt
         switch((cause << 1) >> 1){
             case INT_MTIMER:    // M态时钟中断
-                *((unsigned*)ADR_TMEH) = 0;
-                *((unsigned*)ADR_TMEL) = 0;
-                if(in_user){
-                    ++ time_count;
+                asm volatile ("csrr %0, time" : "=r"(time_count));
+                unsigned long long new_time = time_count + 0x1000;
+                write_csr(0x321, new_time);
+                // if(in_user){
+                    // ++ time_count;
                     // time is up
-                    if(time_count >= time_lim)
-                        ret = true;
-                }
+                    // if(time_count >= time_lim)
+                        // ret = true;
+                // }
+                print("An timer interrupt received!\n");
                 break;
-#ifdef WITH_IRQ
-            case INT_MIRQ:
-                irq_source = *((unsigned*)ADR_PLIC);
-                switch(irq_source){
-                    case IRQ_SERIAL:
-                        while(*((unsigned*)ADR_SERIAL_BUF) & 0xf0){
-                            input_buffer[buft ++] = *((char*)ADR_SERIAL_DAT);
-                            if(buft == BUFSIZE)
-                                buft = 0;
-                        }
-                        break;
-                }
-                *((unsigned*)ADR_PLIC) = irq_source;
-                break;
-#endif
+// #ifdef WITH_IRQ
+//             case RINT_MIQ:
+//                 irq_source = *((unsigned*)ADR_PLIC);
+//                 switch(irq_source){
+//                     case IRQ_SERIAL:
+//                         while(*((unsigned*)ADR_SERIAL_BUF) & 0xf0){
+//                             input_buffer[buft ++] = *((char*)ADR_SERIAL_DAT);
+//                             if(buft == BUFSIZE)
+//                                 buft = 0;
+//                         }
+//                         break;
+//                 }
+//                 *((unsigned*)ADR_PLIC) = irq_source;
+//                 break;
+// #endif
             default:
                 print("An unrecognized interrupt received!\n");
                 print("Cause: ");
@@ -227,6 +230,7 @@ void trap(){    // 中断和异常处理例程
     if(ret && in_user){
         // kill the user process
         write_csr(mepc, _exit);
+        print("WTF It is here!\n");
     }
 }
 #endif
@@ -234,7 +238,7 @@ void trap(){    // 中断和异常处理例程
 void init(){
 #if defined(WITH_CSR) && defined(WITH_INTERRUPT)
 #ifdef WITH_IRQ
-    bufh = buft = 0;
+    // bufh = buft = 0;
 #endif
 
     // set up the interrupt stack
@@ -245,10 +249,8 @@ void init(){
     set_csr(mstatus, 8);
     // timecmp = 125000 = clockfreq / 100
     // timer precision: 10ms
-    *((unsigned*)ADR_CMPH) = 0;
-    *((unsigned*)ADR_CMPL) = 125000;
-    *((unsigned*)ADR_TMEH) = 0;
-    *((unsigned*)ADR_TMEL) = 0;
+    *((unsigned long long*)ADR_CMP) = 0;
+    *((unsigned long long*)ADR_TME) = 0;
 #ifdef WITH_IRQ 
     set_csr(mie, (1 << INT_MTIMER) | (1 << INT_MIRQ));
 #else
