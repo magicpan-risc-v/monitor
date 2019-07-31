@@ -26,10 +26,10 @@ out.o: entry.o monitor.o
 	$(LD) -nostdlib -N -Tlinker.ld entry.o monitor.o -o out.o -m elf64lriscv
 
 entry.o: entry.S
-	$(GCC) -c -march=$(MARCH) -mabi=$(ABI) $(CFLAGS) -DVA_BASE=$(VA_BASE) -fno-builtin -o entry.o entry.S
+	$(GCC) -c -O2 -march=$(MARCH) -mabi=$(ABI) $(CFLAGS) -DVA_BASE=$(VA_BASE) -fno-builtin -o entry.o entry.S
 
 monitor.o: monitor.c inst.h arch.h
-	$(GCC) -c -march=$(MARCH) -mabi=$(ABI) $(CFLAGS) -DVA_BASE=$(VA_BASE) -fno-builtin -o monitor.o monitor.c
+	$(GCC) -c -O2 -march=$(MARCH) -mabi=$(ABI) $(CFLAGS) -DVA_BASE=$(VA_BASE) -fno-builtin -o monitor.o monitor.c
 
 bootable.bin: ../bootloader/bootedcat.bin out.o
 	cat ../bootloader/bootedcat.bin out.o > bootable.bin

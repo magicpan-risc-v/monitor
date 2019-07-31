@@ -72,7 +72,7 @@ void get_line(){
     buffer[bn] = '\0';
 }
 
-void hex2str(unsigned x, char* cbuffer){
+void hex2str(unsigned long long x, char* cbuffer){
     cbuffer[0] = '0'; cbuffer[1] = 'x';
     int i;
     for(i = 0; i < 8; i ++){
@@ -81,22 +81,26 @@ void hex2str(unsigned x, char* cbuffer){
     cbuffer[10] = '\0';
 }
 
-void print_hex(unsigned x){
+void print_hex(unsigned long long x){
     char buf[16];
     hex2str(x, buf);
     print(buf);
 }
 
 
-unsigned hexchar2int(char c){
-    if(c >= '0' && c <= '9')
-        return c - '0';
-    return c - 'a' + 10;
+unsigned long long hexchar2int(char c){
+    unsigned long long res = 0;
+    if(c >= '0' && c <= '9'){
+        res = c - '0';
+    }else{
+        res = c - 'a' + 10;
+    }
+    return res;
 }
 
-unsigned str2hex(char* c){
+unsigned long long str2hex(char* c){
     c += 2; // skip 0x
-    unsigned res = 0;
+    unsigned long long res = 0;
     while(*c && *c != ' '){
         res = (res << 4) | hexchar2int(*c);
         ++ c;
@@ -131,7 +135,8 @@ void trap(){    // 中断和异常处理例程
         switch((cause << 1) >> 1){
             case INT_MTIMER:    // M态时钟中断
                 asm volatile ("csrr %0, time" : "=r"(time_count));
-                unsigned long long new_time = time_count + 0x1000;
+                unsigned long long new_time = 0;
+                new_time = time_count + 0x1000;
                 write_csr(0x321, new_time);
                 // if(in_user){
                     // ++ time_count;
@@ -139,7 +144,7 @@ void trap(){    // 中断和异常处理例程
                     // if(time_count >= time_lim)
                         // ret = true;
                 // }
-                print("An timer interrupt received!\n");
+                // print("An timer interrupt received!\n");
                 break;
 // #ifdef WITH_IRQ
 //             case RINT_MIQ:
@@ -278,7 +283,8 @@ void jump_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned target_adr = str2hex(c);
+    unsigned long long target_adr = 0;
+    target_adr += str2hex(c);
     _entry(target_adr);
 
 
