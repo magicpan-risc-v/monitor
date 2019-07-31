@@ -35,7 +35,7 @@
 // #endif
 
 extern void _trap_entry(void);
-extern void _entry(unsigned adr);
+extern void _entry(unsigned long long adr);
 extern void _exit(void);
 
 void print(const char* str){
