@@ -319,7 +319,7 @@ void edit_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     while(true){
         print("[");
         print_hex(adr);
