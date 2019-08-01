@@ -139,7 +139,7 @@ void trap(){    // 中断和异常处理例程
                     // if(time_count >= time_lim)
                         // ret = true;
                 // }
-                print("An timer interrupt received!\n");
+                /*print("An timer interrupt received!\n");*/
                 break;
 // #ifdef WITH_IRQ
 //             case RINT_MIQ:
