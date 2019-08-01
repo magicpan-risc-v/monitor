@@ -57,7 +57,7 @@ _entry:
     sd sp, 0(a2)
 
     addi x2, x0, 0  // 将除代表返回地址的1号寄存器外全部寄存器置为0
-    # addi x3, x0, 0
+#addi x3, x0, 0
     addi x4, x0, 0
     addi x5, x0, 0
     addi x6, x0, 0

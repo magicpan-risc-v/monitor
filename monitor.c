@@ -75,26 +75,30 @@ void get_line(){
 void hex2str(unsigned long long x, char* cbuffer){
     cbuffer[0] = '0'; cbuffer[1] = 'x';
     int i;
-    for(i = 0; i < 8; i ++){
-        cbuffer[2 + i] = HEX[(x >> ((7 - i) << 2)) & (0xf)];
+    for(i = 0; i < 16; i ++){
+        cbuffer[2 + i] = HEX[(x >> ((15 - i) << 2)) & (0xf)];
     }
-    cbuffer[10] = '\0';
+    cbuffer[18] = '\0';
 }
 
 void print_hex(unsigned long long x){
-    char buf[16];
+    char buf[20];
     hex2str(x, buf);
     print(buf);
 }
 
 
 unsigned long long hexchar2int(char c){
-    unsigned long long res = 0;
-    if(c >= '0' && c <= '9'){
+	unsigned long long res = 0;
+    if(c >= '0' && c <= '9') {
         res = c - '0';
-    }else{
-        res = c - 'a' + 10;
-    }
+	}else if(c >= 'a' && c <= 'f'){
+		res = c - 'a' + 10;
+	}else if(c >= 'A' && c <= 'F'){
+		res = c - 'A' + 10;
+	}else{
+		res = 0;
+	}
     return res;
 }
 
@@ -102,7 +106,7 @@ unsigned long long str2hex(char* c){
     c += 2; // skip 0x
     unsigned long long res = 0;
     while(*c && *c != ' '){
-        res = (res << 4) | hexchar2int(*c);
+        res = (res << 4) + hexchar2int(*c);
         ++ c;
     }
     return res;
@@ -138,13 +142,12 @@ void trap(){    // 中断和异常处理例程
                 unsigned long long new_time = 0;
                 new_time = time_count + 0x1000;
                 write_csr(0x321, new_time);
-                // if(in_user){
-                    // ++ time_count;
-                    // time is up
-                    // if(time_count >= time_lim)
-                        // ret = true;
-                // }
-                // print("An timer interrupt received!\n");
+				 if(in_user){
+					 ++ time_count;
+					 /*time is up*/
+					 if(time_count >= time_lim)
+						 ret = true;
+				 }
                 break;
 // #ifdef WITH_IRQ
 //             case RINT_MIQ:
@@ -235,7 +238,6 @@ void trap(){    // 中断和异常处理例程
     if(ret && in_user){
         // kill the user process
         write_csr(mepc, _exit);
-        print("WTF It is here!\n");
     }
 }
 #endif
@@ -263,7 +265,7 @@ void init(){
 #endif
     in_user = false;
 
-    time_lim = 100; // initial time limit 1000 ms
+    time_lim = 500; // initial time limit 1000 ms
 #endif
 
     int i;
@@ -319,7 +321,7 @@ void edit_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     while(true){
         print("[");
         print_hex(adr);
@@ -445,19 +447,19 @@ void view_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     c = next_word(c);
     if(!*c || !*(c+1))
         return;
-    unsigned cnt = str2hex(c);
+    unsigned long long cnt = str2hex(c);
     while(cnt --){
         print("[");
         print_hex(adr);
         print("] ");
-        val = *((unsigned*)adr);
+        val = *((unsigned long long *)adr);
         print_hex(val);
         print("\n");
-        adr += 4;
+        adr += 8;
     }
 }
 
