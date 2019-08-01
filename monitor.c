@@ -35,7 +35,7 @@
 // #endif
 
 extern void _trap_entry(void);
-extern void _entry(unsigned adr);
+extern void _entry(unsigned long long adr);
 extern void _exit(void);
 
 void print(const char* str){
@@ -141,13 +141,12 @@ void trap(){    // 中断和异常处理例程
                 asm volatile ("csrr %0, time" : "=r"(time_count));
                 unsigned long long new_time = time_count + 0x1000;
                 write_csr(0x321, new_time);
-                // if(in_user){
-                    // ++ time_count;
-                    // time is up
-                    // if(time_count >= time_lim)
-                        // ret = true;
-                // }
-                /*print("An timer interrupt received!\n");*/
+				 if(in_user){
+					 ++ time_count;
+					 /*time is up*/
+					 if(time_count >= time_lim)
+						 ret = true;
+				 }
                 break;
 // #ifdef WITH_IRQ
 //             case RINT_MIQ:
@@ -238,7 +237,6 @@ void trap(){    // 中断和异常处理例程
     if(ret && in_user){
         // kill the user process
         write_csr(mepc, _exit);
-        print("WTF It is here!\n");
     }
 }
 #endif
@@ -266,7 +264,7 @@ void init(){
 #endif
     in_user = false;
 
-    time_lim = 100; // initial time limit 1000 ms
+    time_lim = 500; // initial time limit 1000 ms
 #endif
 
     int i;
