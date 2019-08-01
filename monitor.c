@@ -72,33 +72,41 @@ void get_line(){
     buffer[bn] = '\0';
 }
 
-void hex2str(unsigned x, char* cbuffer){
+void hex2str(unsigned long long x, char* cbuffer){
     cbuffer[0] = '0'; cbuffer[1] = 'x';
     int i;
-    for(i = 0; i < 8; i ++){
-        cbuffer[2 + i] = HEX[(x >> ((7 - i) << 2)) & (0xf)];
+    for(i = 0; i < 16; i ++){
+        cbuffer[2 + i] = HEX[(x >> ((15 - i) << 2)) & (0xf)];
     }
-    cbuffer[10] = '\0';
+    cbuffer[18] = '\0';
 }
 
-void print_hex(unsigned x){
-    char buf[16];
+void print_hex(unsigned long long x){
+    char buf[20];
     hex2str(x, buf);
     print(buf);
 }
 
 
-unsigned hexchar2int(char c){
-    if(c >= '0' && c <= '9')
-        return c - '0';
-    return c - 'a' + 10;
+unsigned long long hexchar2int(char c){
+	unsigned long long res = 0;
+    if(c >= '0' && c <= '9') {
+        res = c - '0';
+	}else if(c >= 'a' && c <= 'f'){
+		res = c - 'a' + 10;
+	}else if(c >= 'A' && c <= 'F'){
+		res = c - 'A' + 10;
+	}else{
+		res = 0;
+	}
+    return res;
 }
 
-unsigned str2hex(char* c){
+unsigned long long str2hex(char* c){
     c += 2; // skip 0x
-    unsigned res = 0;
+    unsigned long long res = 0;
     while(*c && *c != ' '){
-        res = (res << 4) | hexchar2int(*c);
+        res = (res << 4) + hexchar2int(*c);
         ++ c;
     }
     return res;
@@ -439,19 +447,19 @@ void view_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     c = next_word(c);
     if(!*c || !*(c+1))
         return;
-    unsigned cnt = str2hex(c);
+    unsigned long long cnt = str2hex(c);
     while(cnt --){
         print("[");
         print_hex(adr);
         print("] ");
-        val = *((unsigned*)adr);
+        val = *((unsigned long long *)adr);
         print_hex(val);
         print("\n");
-        adr += 4;
+        adr += 8;
     }
 }
 
