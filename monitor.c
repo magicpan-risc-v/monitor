@@ -426,7 +426,7 @@ void inst_exe(){
     char *c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     while(true){
         print("[");
         print_hex(adr);
@@ -539,7 +539,7 @@ void disas_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned adr = str2hex(c), val;
+    unsigned long long adr = str2hex(c), val;
     c = next_word(c);
     if(!*c || !*(c+1))
         return;
@@ -548,7 +548,7 @@ void disas_exe(){
         print("[");
         print_hex(adr);
         print("] ");
-        val = *((unsigned*)adr);
+        val = *((unsigned *)adr);
         print_int2inst(val);
         print("\n");
         adr += 4;
