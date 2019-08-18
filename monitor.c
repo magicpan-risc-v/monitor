@@ -284,7 +284,7 @@ void jump_exe(){
     char* c = next_word(buffer);
     if(!*c || !*(c+1))
         return;
-    unsigned target_adr = str2hex(c);
+    unsigned long long target_adr = str2hex(c);
     _entry(target_adr);
 
 
