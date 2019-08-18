@@ -131,10 +131,10 @@ void trap(){    // 中断和异常处理例程
 #ifdef WITH_IRQ
     unsigned irq_source;
 #endif
-    unsigned cause = read_csr(mcause);  // 获取原因
+    unsigned long long cause = read_csr(mcause);  // 获取原因
     unsigned long long time_count = 0;
     bool ret = false;
-    if((int)cause < 0){ // 代表中断
+    if((long long)cause < 0){ // 代表中断
         // asynchronous interrupt
         switch((cause << 1) >> 1){
             case INT_MTIMER:    // M态时钟中断
